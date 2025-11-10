@@ -161,7 +161,7 @@ if (!function_exists('main_menu_array')) {
                 'department'      => array('index','create','edit'),
                 'designation'     => array('index','create','edit'),
                 'leavetypes'      => array('index','create','edit'),
-                'categories'      => array('admin/categories.html','categories/create.html','categories/edit.html'),
+                'categories'      => array('categories.html','categories/create.html','categories/edit.html'),
                 'units'           => array('admin/units.html','units/create.html','units/edit.html'),
                 'brands'          => array('index','create','edit'), 
                 'variants'        => array('index','create','edit'),

@@ -226,4 +226,85 @@ class Products_model extends MY_Model
         }
     }
 
+    public function get_categories()
+    {
+        $this->db->select('code, name');
+        $this->db->from('categories');
+        $this->db->where('is_active', 'yes');
+
+        return $this->db->get()->result();
+    }
+
+    public function get_units()
+    {
+        $this->db->select('code, name, short_name, unit_value');
+        $this->db->from('units');
+        $this->db->where('is_active', 'yes');
+
+        return $this->db->get()->result();
+    }
+
+    public function taxs_list()
+    {
+        $this->db->select('id, name, rate');
+        $this->db->from('tax_rates');
+        $this->db->where('is_active', 'yes');
+
+        return $this->db->get()->result();
+    }
+
+    public function generate_item_code()
+    {
+        $prefix = "ITM_";
+        $this->db->select('item_code');
+        $this->db->like('item_code', $prefix);
+        $this->db->order_by('id', 'DESC');
+        $this->db->limit(1);
+        $query  = $this->db->get('add_products');
+
+        if($query->num_rows() > 0){
+            $last_code = $query->row()->item_code;
+            $num = (int) filter_var($last_code, FILTER_SANITIZE_NUMBER_INT);
+            $num++;
+        } else {
+            $num = 1001;
+        }
+
+        return $prefix . str_pad($num, 8, '0', STR_PAD_LEFT);
+    }
+
+    public function generate_service_code()
+    {
+        $prefix = "SER_";
+        $this->db->select('service_code');
+        $this->db->like('service_code', $prefix);
+        $this->db->order_by('id', 'DESC');
+        $this->db->limit(1);
+        $query  = $this->db->get('add_products');
+
+        if($query->num_rows() > 0){
+            $last_code = $query->row()->service_code;
+            $num = (int) filter_var($last_code, FILTER_SANITIZE_NUMBER_INT);
+            $num++;
+        } else {
+            $num = 1001;
+        }
+
+        return $prefix . str_pad($num, 8, '0', STR_PAD_LEFT);
+    }
+
+
+
+    public function add_item($data)
+    {
+        if (isset($data['id'])) {
+            
+        } else {
+
+            $this->db->insert('add_products', $data);
+            
+            return true;
+        }
+    }
+
 }

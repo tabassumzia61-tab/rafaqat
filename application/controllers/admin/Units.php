@@ -15,10 +15,10 @@ public function index()
 
     $data['title']              = 'Add Unit';
     $data["name"]               = "";
+    $data["short_name"]         = "";
     $data["code"]               = "";
-    $data["base_unit"]          = "";
-    $data["operator"]           = "";
-    $data["operation_value"]    = "";
+    $data["primary_unit"]       = "";
+    $data["is_active"]          = "";
     $data["description"]        = "";
 
     // parent list for the create/edit form (unchanged)
@@ -122,13 +122,14 @@ public function index()
         $resultlist = $this->units_model->get();
         $data["resultlist"]         = $resultlist;
         $data["name"]               = "";
+        $data["short_name"]         = "";
         $data["code"]               = "";
-        $data["base_unit"]          = "";
-        $data["operator"]           = "";
-        $data["operation_value"]    = "";
+        $data["primary_unit"]       = "";
+        $data["is_Active"]          = "";
         $data["description"]        = "";
 
         $this->form_validation->set_rules('name', 'Name', array('required', array('check_exists', array($this->units_model, 'check_exists'))));
+        //$this->form_validation->set_rules('short_name', 'Short name', array('required'));
         //$this->form_validation->set_rules('code', $this->lang->line('Unit').' '.$this->lang->line('code'), 'trim|is_unique[units.code]|required');
         
         if ($this->form_validation->run() == FALSE)
@@ -142,12 +143,11 @@ public function index()
 
             $data = array(
                 'name'              => $this->input->post('name'),
+                'short_name'        => $this->input->post('short_name'),
                 'code'              => $code,
-                'base_unit'         => $this->input->post('base_unit'),
-                'operator'          => $this->input->post('operator'),
-                'operation_value'   => $this->input->post('operation_value'),
+                'primary_unit'      => $this->input->post('primary_unit'),
+                'is_active'         => $this->input->post('is_active'),
                 'description'       => $this->input->post('description'),
-                'is_active'         => 'yes'
             );
 
             $this->units_model->add($data);
@@ -206,7 +206,7 @@ public function index()
         $offset = ($page && $page > 0) ? $page : 0;
 
         $total_rows = $this->units_model->count_units($search);
-        $units     = $this->units_model->get_units($limit, $offset, $search);
+        $units      = $this->units_model->get_units($limit, $offset, $search);
 
         // Build pagination config
         $config = array();
@@ -253,9 +253,9 @@ public function index()
         $data['id']                 = $id;
         $data["result"]             = $result;
         $data["name"]               = $result["name"];
-        $data["base_unit"]          = $result["base_unit"];
-        $data["operator"]           = $result["operator"];
-        $data["operation_value"]    = $result["operation_value"];
+        $data["short_name"]         = $result["short_name"];
+        $data["primary_unit"]       = $result["primary_unit"];
+        $data["is_active"]          = $result["is_active"];
         $data["description"]        = $result["description"];
 
 
@@ -271,12 +271,10 @@ public function index()
             $data = array(
                 'id'                => $id,
                 'name'              => $this->input->post('name'),
-                //'code'              => $this->input->post('code'),
-                'base_unit'         => $this->input->post('base_unit'),
-                'operator'          => $this->input->post('operator'),
-                'operation_value'   => $this->input->post('operation_value'),
+                'short_name'        => $this->input->post('short_name'),
+                'primary_unit'      => $this->input->post('primary_unit'),
+                'is_active'          => $this->input->post('is_active'),
                 'description'       => $this->input->post('description'),
-                'is_active'         => 'yes'
             );
 
             $this->units_model->add($data);

@@ -87,199 +87,278 @@ class Products extends Admin_Controller{
             access_denied();
         }
 
-        $data['title']           = 'Add Product';
+        //$data['title']          = 'Add Product';
 
-        $this->load->view('layout/header', $data);
-        $this->load->view('admin/products/productsCreate', $data);
-        $this->load->view('layout/footer', $data);
-
-
-        $data['unitlist']        = $this->units_model->get();
-        $data['categories']      = $this->categories_model->getAllCategories();
-        $data['producttype']     = $this->producttype_model->getAllProductType();
-        $data['tax_rates']       = $this->taxrates_model->get();
-        $data['sale_acc']        = $this->accounts_model->getAccountsHeadBytypeIDByID(12,1);
-        $data['cost_sale_acc']   = $this->accounts_model->getAccountsHeadBytypeIDByID(14,1);
-        $lastcode = $this->products_model->getlastrecord();
-        if (!empty($lastcode)) {
-            $codeno = $lastcode['code'] + 1;
-        }else{
-            $codeno = 1;
+        if(($this->input->post('product_type')) == "product")
+        {
+            $this->form_validation->set_rules('item_name', 'item name', 'trim|required');
         }
-        $data['codeno'] = $codeno;
-        $data['product_type']    = $this->input->post('product_type');
-        $data['product_subtype'] = $this->input->post('product_subtype');
-        $data['category']        = $this->input->post('category');
-        $data['subcategory']     = $this->input->post('subcategory');
-        $this->form_validation->set_rules('name', $this->lang->line('product').' '.$this->lang->line('name'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('code', $this->lang->line('product').' '.$this->lang->line('code'), 'is_unique[products.code]|alpha_dash');
-        $this->form_validation->set_rules('product_type', $this->lang->line('product_type'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('product_subtype', $this->lang->line('product_subtype'), 'trim|required|xss_clean');
-        //$this->form_validation->set_rules('cost', $this->lang->line('product').' '.$this->lang->line('cost'), 'trim|required|xss_clean');
-        //$this->form_validation->set_rules('unit', $this->lang->line('product').' '.$this->lang->line('unit'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('documents', $this->lang->line('documents'), 'callback_handle_upload');
-        if ($this->form_validation->run() == false) {
+        else
+        {
+            $this->form_validation->set_rules('service_name', 'service_name', 'trim|required');
+        }
+
+        if ($this->form_validation->run() == false)
+        {
+            $data['categories_list']    = $this->products_model->get_categories();
+            $data['units_list']         = $this->products_model->get_units();
+            $data['item_code']          = $this->products_model->generate_item_code();
+            $data['service_code']       = $this->products_model->generate_service_code();
+            $data['taxs_list']          = $this->products_model->taxs_list();
+
             $this->load->view('layout/header', $data);
             $this->load->view('admin/products/productsCreate', $data);
             $this->load->view('layout/footer', $data);
-        } else {
-            $img_name = $this->media_storage->fileupload("documents", "./uploads/puproduct/");
-            $data = array(
-                'product_type'          => $this->input->post('product_type'),
-                'product_subtype'       => $this->input->post('product_subtype'),
-                'name'                  => $this->input->post('name'),
-                'code'                  => $this->input->post('code'),
-                'barcode_symbology'     => $this->input->post('barcode_symbology'),
-                'cost'                  => $this->input->post('cost'),
-                'price'                 => $this->input->post('sale_price'),
-                'unit'                  => $this->input->post('unit'),
-                'alert_quantity'        => $this->input->post('alert_quantity'),
-                'second_name'           => $this->input->post('second_name'),
-                'category_id'           => $this->input->post('category'),
-                'subcategory_id'        => $this->input->post('subcategory'),
-                'product_details'       => $this->input->post('product_details'),
-                'image'                 => $img_name,
-                'details'               => $this->input->post('details'),
-                'initial_quantity'      => $this->input->post('initial_quantity'),
-                'initial_quantity'      => $this->input->post('initial_quantity'),
-                'tax_method'            => $this->input->post('tax_method'),
-                'tax_rate'              => $this->input->post('tax_rate'),
-                'acc_type_id'           => 5,
-                'is_active'             => 'yes',
-            );
-            $products_id = $this->products_model->add($data);
-            if(!empty($products_id)){
-                $resultnew = $this->accounts_model->getnewaccount(12);
-                if(!empty($resultnew)){
-                    $acc_tot = $this->products_model->getTotalaccounthead(12);
-                    if(!empty($acc_tot)){
-                        $code = $resultnew['code'].($acc_tot->total_code_no + 1 );
-                    }else{
-                        $code = $resultnew['code'].'1';
-                    }
-                    $sdata = array(
-                        'accounts_head_id' => 4,
-                        'new_accounts_id' => 12,
-                        'item_id' => $products_id,
-                        'code' => $code,
-                        'name' => 'Sales Of '.$this->input->post('name'),
-                        'is_active' => 'yes',
-                    );
-                    $sh = $this->products_model->addaccountshead($sdata);
-                    $sudata = array(
-                        'id'      => $products_id,
-                        'acc_head_sales_id'      => $sh,
-                    );
-                    $this->products_model->add($sudata);
-                }
-                $resultnew = $this->accounts_model->getnewaccount(13);
-                if(!empty($resultnew)){
-                    $acc_tot = $this->products_model->getTotalaccounthead(13);
-                    if(!empty($acc_tot)){
-                        $rcode = $resultnew['code'].($acc_tot->total_code_no + 1 );
-                    }else{
-                        $rcode = $resultnew['code'].'1';
-                    }
-                    $srdata = array(
-                        'accounts_head_id' => 4,
-                        'new_accounts_id' => 13,
-                        'item_id' => $products_id,
-                        'code' => $rcode,
-                        'name' => 'Sales Returns Of '.$this->input->post('name'),
-                        'is_active' => 'yes',
-                    );
-                    $srh = $this->products_model->addaccountshead($srdata);
-                    $srudata = array(
-                        'id'      => $products_id,
-                        'acc_head_sales_returns_id'      => $srh,
-                    );
-                    $this->products_model->add($srudata);
-                }
-                $resultnew = $this->accounts_model->getnewaccount(15);
-                if(!empty($resultnew)){
-                    $acc_tot = $this->products_model->getTotalaccounthead(15);
-                    if(!empty($acc_tot)){
-                        $pcode = $resultnew['code'].($acc_tot->total_code_no + 1 );
-                    }else{
-                        $pcode = $resultnew['code'].'1';
-                    }
-                    $pdata = array(
-                        'accounts_head_id' => 5,
-                        'new_accounts_id' => 15,
-                        'item_id' => $products_id,
-                        'code' => $pcode,
-                        'name' => 'Purchases Of '.$this->input->post('name'),
-                        'is_active' => 'yes',
-                    );
-                    $ph = $this->products_model->addaccountshead($pdata);
-                    $pudata = array(
-                        'id'      => $products_id,
-                        'acc_head_purchases_id' => $ph,
-                    );
-                    $this->products_model->add($pudata);
-                }
-                $resultnew = $this->accounts_model->getnewaccount(16);
-                if(!empty($resultnew)){
-                    $acc_tot = $this->products_model->getTotalaccounthead(16);
-                    if(!empty($acc_tot)){
-                        $prcode = $resultnew['code'].($acc_tot->total_code_no + 1 );
-                    }else{
-                        $prcode = $resultnew['code'].'1';
-                    }
-                    $prdata = array(
-                        'accounts_head_id' => 5,
-                        'new_accounts_id' => 16,
-                        'item_id' => $products_id,
-                        'code' => $prcode,
-                        'name' => 'Purchases Returns Of '.$this->input->post('name'),
-                        'is_active' => 'yes',
-                    );
-                    $prh = $this->products_model->addaccountshead($prdata);
-                    $prudata = array(
-                        'id'      => $products_id,
-                        'acc_head_purchases_returns_id' => $prh,
-                    );
-                    $this->products_model->add($prudata);
-                }
-                $resultnew = $this->accounts_model->getnewaccount(17);
-                if(!empty($resultnew)){
-                    $acc_tot = $this->products_model->getTotalaccounthead(17);
-                    if(!empty($acc_tot)){
-                        $coscode = $resultnew['code'].($acc_tot->total_code_no + 1 );
-                    }else{
-                        $coscode = $resultnew['code'].'1';
-                    }
-                    $cosdata = array(
-                        'accounts_head_id' => 5,
-                        'new_accounts_id' => 17,
-                        'item_id' => $products_id,
-                        'code' => $coscode,
-                        'name' => 'Cost of Sales Of '.$this->input->post('name'),
-                        'is_active' => 'yes',
-                    );
-                    $cos = $this->products_model->addaccountshead($cosdata);
-                    $cosudata = array(
-                        'id'      => $products_id,
-                        'acc_head_cost_sale_id' => $cos,
-                    );
-                    $this->products_model->add($cosudata);
-                }
-                
-            }
-            $variants = $this->input->post('attributes');
-            $variant = explode(",", $variants);
-            if(!empty($variant)){
-                foreach($variant as $val){
-                    $datav = array(
-                        'product_id'  => $products_id,
-                        'name'        => $val
-                    );
-                    $this->products_model->addvariant($datav);
-                }
-            }
-            $this->session->set_flashdata('msg', '<div class="alert alert-success text-left">' . $this->lang->line('success_message') . '</div>');
-            redirect('admin/products/index');
         }
+        else
+        {
+            if(($this->input->post('product_type')) == "product")
+            {
+                $data['item_name']      = $this->input->post('item_name');
+                $data['item_code']      = $this->input->post('item_code');
+            }
+            else
+            {
+                $data['service_name']   = $this->input->post('service_name');
+                $data['service_code']   = $this->input->post('service_code');
+            }
+            
+            $data['category_code']      = $this->input->post('categories');
+            $data['unit_code']          = $this->input->post('unit_code');
+
+            $img_name   = $this->media_storage->fileupload("image", "./uploads/products/");
+            $data['image']              = $img_name;
+            $data['description']        = $this->input->post('discription');
+
+            $data['mrp']                = $this->input->post('mrp');
+            $data['disc_on_mrp_sale']   = $this->input->post('disc_on_mrp_sale');
+            $data['disc_on_mrp_for_wholesale']  = $this->input->post('disc_on_mrp_for_wholesale');
+
+            $data['sale_price']         = $this->input->post('sale_price');
+            $data['sale_price_type']    = $this->input->post('sale_price_type');
+
+            $data['disc_on_sale_price']     = $this->input->post('disc_on_sale_price'); 
+            $data['disc_on_sale_price_type']= $this->input->post('disc_on_sale_price_type'); 
+
+            
+            $data['wholesale_price']        = $this->input->post('wholesale_price');
+            $data['wholesale_price_type']   = $this->input->post('wholesale_price_type');
+
+            $data['disc_on_mrp_for_wholesale']  = $this->input->post('disc_on_mrp_for_wholesale');
+
+            $data['purchase_price']     = $this->input->post('purchase_price');
+            $data['purchase_price_type']= $this->input->post('purchase_price_type');
+
+            $data['taxes']              = $this->input->post('taxes');
+
+            $data['opening_quantity']   = $this->input->post('opening_quantity');
+            $data['at_price']           = $this->input->post('at_price');
+            $data['as_of_date']         = $this->input->post('as_of_date');
+            $data['minimun_stock_to_mantain']   = $this->input->post('minimun_stock_to_mantain');
+            $data['location']           = $this->input->post('location');
+            
+            //dd($data);
+            //$data['categories_list']    = $this->products_model->get_categories();
+            //$data['item_code']          = $this->products_model->generate_item_code();
+            //$data['service_code']       = $this->products_model->generate_service_code();
+
+            //dd($data);
+            $this->products_model->add_item($data);
+
+            $this->session->set_flashdata('msg', '<div class="alert alert-success text-left">' . $this->lang->line('success_message') . '</div>');
+            redirect('admin/products/create.html');
+
+        }
+
+        
+        // $data['unitlist']        = $this->units_model->get();
+        // $data['categories']      = $this->categories_model->getAllCategories();
+        // $data['producttype']     = $this->producttype_model->getAllProductType();
+        // $data['tax_rates']       = $this->taxrates_model->get();
+        // $data['sale_acc']        = $this->accounts_model->getAccountsHeadBytypeIDByID(12,1);
+        // $data['cost_sale_acc']   = $this->accounts_model->getAccountsHeadBytypeIDByID(14,1);
+        
+        // $lastcode = $this->products_model->getlastrecord();
+        // if (!empty($lastcode)) {
+        //     $codeno = $lastcode['code'] + 1;
+        // }else{
+        //     $codeno = 1;
+        // }
+
+        // $data['codeno'] = $codeno;
+        // $data['product_type']    = $this->input->post('product_type');
+        // $data['product_subtype'] = $this->input->post('product_subtype');
+        // $data['category']        = $this->input->post('category');
+        // $data['subcategory']     = $this->input->post('subcategory');
+        // $this->form_validation->set_rules('name', $this->lang->line('product').' '.$this->lang->line('name'), 'trim|required|xss_clean');
+        // $this->form_validation->set_rules('code', $this->lang->line('product').' '.$this->lang->line('code'), 'is_unique[products.code]|alpha_dash');
+        // $this->form_validation->set_rules('product_type', $this->lang->line('product_type'), 'trim|required|xss_clean');
+        // $this->form_validation->set_rules('product_subtype', $this->lang->line('product_subtype'), 'trim|required|xss_clean');
+        // //$this->form_validation->set_rules('cost', $this->lang->line('product').' '.$this->lang->line('cost'), 'trim|required|xss_clean');
+        // //$this->form_validation->set_rules('unit', $this->lang->line('product').' '.$this->lang->line('unit'), 'trim|required|xss_clean');
+        // $this->form_validation->set_rules('documents', $this->lang->line('documents'), 'callback_handle_upload');
+        // if ($this->form_validation->run() == false) {
+        //     $this->load->view('layout/header', $data);
+        //     $this->load->view('admin/products/productsCreate', $data);
+        //     $this->load->view('layout/footer', $data);
+        // } else {
+        //     $img_name = $this->media_storage->fileupload("documents", "./uploads/puproduct/");
+        //     $data = array(
+        //         'product_type'          => $this->input->post('product_type'),
+        //         'product_subtype'       => $this->input->post('product_subtype'),
+        //         'name'                  => $this->input->post('name'),
+        //         'code'                  => $this->input->post('code'),
+        //         'barcode_symbology'     => $this->input->post('barcode_symbology'),
+        //         'cost'                  => $this->input->post('cost'),
+        //         'price'                 => $this->input->post('sale_price'),
+        //         'unit'                  => $this->input->post('unit'),
+        //         'alert_quantity'        => $this->input->post('alert_quantity'),
+        //         'second_name'           => $this->input->post('second_name'),
+        //         'category_id'           => $this->input->post('category'),
+        //         'subcategory_id'        => $this->input->post('subcategory'),
+        //         'product_details'       => $this->input->post('product_details'),
+        //         'image'                 => $img_name,
+        //         'details'               => $this->input->post('details'),
+        //         'initial_quantity'      => $this->input->post('initial_quantity'),
+        //         'initial_quantity'      => $this->input->post('initial_quantity'),
+        //         'tax_method'            => $this->input->post('tax_method'),
+        //         'tax_rate'              => $this->input->post('tax_rate'),
+        //         'acc_type_id'           => 5,
+        //         'is_active'             => 'yes',
+        //     );
+        //     $products_id = $this->products_model->add($data);
+        //     if(!empty($products_id)){
+        //         $resultnew = $this->accounts_model->getnewaccount(12);
+        //         if(!empty($resultnew)){
+        //             $acc_tot = $this->products_model->getTotalaccounthead(12);
+        //             if(!empty($acc_tot)){
+        //                 $code = $resultnew['code'].($acc_tot->total_code_no + 1 );
+        //             }else{
+        //                 $code = $resultnew['code'].'1';
+        //             }
+        //             $sdata = array(
+        //                 'accounts_head_id' => 4,
+        //                 'new_accounts_id' => 12,
+        //                 'item_id' => $products_id,
+        //                 'code' => $code,
+        //                 'name' => 'Sales Of '.$this->input->post('name'),
+        //                 'is_active' => 'yes',
+        //             );
+        //             $sh = $this->products_model->addaccountshead($sdata);
+        //             $sudata = array(
+        //                 'id'      => $products_id,
+        //                 'acc_head_sales_id'      => $sh,
+        //             );
+        //             $this->products_model->add($sudata);
+        //         }
+        //         $resultnew = $this->accounts_model->getnewaccount(13);
+        //         if(!empty($resultnew)){
+        //             $acc_tot = $this->products_model->getTotalaccounthead(13);
+        //             if(!empty($acc_tot)){
+        //                 $rcode = $resultnew['code'].($acc_tot->total_code_no + 1 );
+        //             }else{
+        //                 $rcode = $resultnew['code'].'1';
+        //             }
+        //             $srdata = array(
+        //                 'accounts_head_id' => 4,
+        //                 'new_accounts_id' => 13,
+        //                 'item_id' => $products_id,
+        //                 'code' => $rcode,
+        //                 'name' => 'Sales Returns Of '.$this->input->post('name'),
+        //                 'is_active' => 'yes',
+        //             );
+        //             $srh = $this->products_model->addaccountshead($srdata);
+        //             $srudata = array(
+        //                 'id'      => $products_id,
+        //                 'acc_head_sales_returns_id'      => $srh,
+        //             );
+        //             $this->products_model->add($srudata);
+        //         }
+        //         $resultnew = $this->accounts_model->getnewaccount(15);
+        //         if(!empty($resultnew)){
+        //             $acc_tot = $this->products_model->getTotalaccounthead(15);
+        //             if(!empty($acc_tot)){
+        //                 $pcode = $resultnew['code'].($acc_tot->total_code_no + 1 );
+        //             }else{
+        //                 $pcode = $resultnew['code'].'1';
+        //             }
+        //             $pdata = array(
+        //                 'accounts_head_id' => 5,
+        //                 'new_accounts_id' => 15,
+        //                 'item_id' => $products_id,
+        //                 'code' => $pcode,
+        //                 'name' => 'Purchases Of '.$this->input->post('name'),
+        //                 'is_active' => 'yes',
+        //             );
+        //             $ph = $this->products_model->addaccountshead($pdata);
+        //             $pudata = array(
+        //                 'id'      => $products_id,
+        //                 'acc_head_purchases_id' => $ph,
+        //             );
+        //             $this->products_model->add($pudata);
+        //         }
+        //         $resultnew = $this->accounts_model->getnewaccount(16);
+        //         if(!empty($resultnew)){
+        //             $acc_tot = $this->products_model->getTotalaccounthead(16);
+        //             if(!empty($acc_tot)){
+        //                 $prcode = $resultnew['code'].($acc_tot->total_code_no + 1 );
+        //             }else{
+        //                 $prcode = $resultnew['code'].'1';
+        //             }
+        //             $prdata = array(
+        //                 'accounts_head_id' => 5,
+        //                 'new_accounts_id' => 16,
+        //                 'item_id' => $products_id,
+        //                 'code' => $prcode,
+        //                 'name' => 'Purchases Returns Of '.$this->input->post('name'),
+        //                 'is_active' => 'yes',
+        //             );
+        //             $prh = $this->products_model->addaccountshead($prdata);
+        //             $prudata = array(
+        //                 'id'      => $products_id,
+        //                 'acc_head_purchases_returns_id' => $prh,
+        //             );
+        //             $this->products_model->add($prudata);
+        //         }
+        //         $resultnew = $this->accounts_model->getnewaccount(17);
+        //         if(!empty($resultnew)){
+        //             $acc_tot = $this->products_model->getTotalaccounthead(17);
+        //             if(!empty($acc_tot)){
+        //                 $coscode = $resultnew['code'].($acc_tot->total_code_no + 1 );
+        //             }else{
+        //                 $coscode = $resultnew['code'].'1';
+        //             }
+        //             $cosdata = array(
+        //                 'accounts_head_id' => 5,
+        //                 'new_accounts_id' => 17,
+        //                 'item_id' => $products_id,
+        //                 'code' => $coscode,
+        //                 'name' => 'Cost of Sales Of '.$this->input->post('name'),
+        //                 'is_active' => 'yes',
+        //             );
+        //             $cos = $this->products_model->addaccountshead($cosdata);
+        //             $cosudata = array(
+        //                 'id'      => $products_id,
+        //                 'acc_head_cost_sale_id' => $cos,
+        //             );
+        //             $this->products_model->add($cosudata);
+        //         }
+                
+        //     }
+        //     $variants = $this->input->post('attributes');
+        //     $variant = explode(",", $variants);
+        //     if(!empty($variant)){
+        //         foreach($variant as $val){
+        //             $datav = array(
+        //                 'product_id'  => $products_id,
+        //                 'name'        => $val
+        //             );
+        //             $this->products_model->addvariant($datav);
+        //         }
+        //     }
+        //     $this->session->set_flashdata('msg', '<div class="alert alert-success text-left">' . $this->lang->line('success_message') . '</div>');
+        //     redirect('admin/products/index');
+        // }
     }
 
     public function edit($id){

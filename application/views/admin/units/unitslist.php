@@ -27,77 +27,54 @@
 
                 <div class="card-body">
                     <form id="form1" action="<?php echo $url ?>"  id="employeeform" name="employeeform" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-                    
-                    <?php if ($this->session->flashdata('msg')) { ?>
-                    <?php echo $this->session->flashdata('msg') ?>
-                    <?php } ?>    
-                    <?php echo $this->customlib->getCSRF(); ?>
-                    <?php 
-                        if (!empty($name)) { ?>
-                            <input type="hidden" name="id" value="<?php echo set_value('id',$id); ?>" />
-                    <?php } ?>
-                    
-                    
+                        <?php if ($this->session->flashdata('msg')) { ?>
+                        <?php echo $this->session->flashdata('msg') ?>
+                        <?php } ?>    
+                        <?php echo $this->customlib->getCSRF(); ?>
+                        <?php 
+                            if (!empty($name)) { ?>
+                                <input type="hidden" name="id" value="<?php echo set_value('id',$id); ?>" />
+                        <?php } ?>
+
                         <div class="mb-3">
                             <div class="form-group">
-                                <label for="exampleInputEmail1"><?php echo $this->lang->line('unit').' '.$this->lang->line('name'); ?></label> <small class="req"> *</small>
+                                <label for="name"><?php echo $this->lang->line('unit').' '.$this->lang->line('name'); ?></label> <small class="req"> *</small>
                                 <input autofocus="" id="name" name="name" placeholder="" type="text" class="form-control gen_slug"  value="<?php echo set_value('name',$name); ?>" />
                                 <span class="text-danger"><?php echo form_error('name'); ?></span>
                             </div>
                         </div>
-                        <!-- <div class="mb-3">
-                            <div class="form-group">
-                                <label for="exampleInputEmail1"><?php //echo $this->lang->line('unit').' '.$this->lang->line('code'); ?></label> <small class="req">*</small>
-                                <input id="code" name="code" type="number" class="form-control"  onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57" value="<?php echo set_value('code',$code); ?>" />
-                                <span class="text-danger"><?php //echo form_error('code'); ?></span>
-                            </div>
-                        </div> -->
                         <div class="mb-3">
                             <div class="form-group">
-                                <label for="exampleInputEmail1"><?php echo $this->lang->line('base_unit'); ?></label>
-
-                                <select id="base_unit" name="base_unit" placeholder="" type="text" class="js-example-basic-single form-control" >
+                                <label for="short_name">Short <?php echo $this->lang->line('name'); ?></label> <small class="req"> *</small>
+                                <input autofocus="" id="short_name" name="short_name" placeholder="Short name..." type="text" class="form-control" value="<?php echo set_value('short_name',$short_name); ?>" />
+                                <span class="text-danger"><?php echo form_error('short_name'); ?></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="primary_unit"> Primary <?php echo $this->lang->line('unit'); ?></label>
+                                <select id="primary_unit" name="primary_unit" placeholder="" type="text" class="js-example-basic-single form-control" >
                                     <option value=""><?php echo $this->lang->line('select') ?></option>
                                     <?php foreach ($resultlist as $key => $value) {
                                         ?>
-                                        <option value="<?php echo $value['id'] ?>" <?php if (set_value('base_unit',$base_unit) == $value['id']) echo "selected=selected" ?> ><?php echo $value['name'] ?></option>
+                                        <option value="<?php echo $value['code'] ?>" <?php if (set_value('primary_unit',$primary_unit) == $value['primary_unit']) echo "selected=selected" ?> ><?php echo $value['name'] ?></option>
                                     <?php }
                                     ?>
                                 </select>
-                                <span class="text-danger"><?php echo form_error('base_unit'); ?></span>
+                                <span class="text-danger"><?php echo form_error('primary_unit'); ?></span>
                             </div>
                         </div>
-
                         <div class="mb-3">
-                            <div id="measuring" style="display:none;">
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('operator'); ?></label>
-
-                                    <select id="operator" name="operator" placeholder="" type="text" class="js-example-basic-single form-control" >
-                                        <option value=""><?php echo $this->lang->line('select') ?></option>
-                                        <?php
-                                            $oopts = ['*' => $this->lang->line('*'), '/' => $this->lang->line('/'), '+' => $this->lang->line('+'), '-' => $this->lang->line('-')]; 
-                                            foreach ($oopts as $key => $value) {
-                                            ?>
-                                            <option value="<?php echo $key ?>" <?php if (set_value('operator',$operator) == $key) echo "selected=selected" ?> ><?php echo $value ?></option>
-                                        <?php }
-                                        ?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('operator'); ?></span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('operation_value'); ?></label> <small class="req"> *</small>
-                                    <input autofocus="" id="operation_value" name="operation_value" placeholder="" type="text" class="form-control gen_slug"  value="<?php echo set_value('operation_value',$operation_value); ?>" />
-                                    <span class="text-danger"><?php echo form_error('operation_value'); ?></span>
-                                </div>
-                            </div>
+                            <label>Status</label>
+                            <select name="is_active" class="form-control">
+                                <option value="yes" <?= ($unit['is_active'] ?? '') == 'yes' ? 'selected' : ''; ?>>Active</option>
+                                <option value="no" <?= ($unit['is_active'] ?? '') == 'no' ? 'selected' : ''; ?>>Inactive</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <div class="form-group">
                                 <label for="exampleInputEmail1"><?php echo $this->lang->line('description'); ?></label>
-                                <textarea class="form-control" id="description" name="description" rows="3">
-                                    <?php echo set_value('description',$description); ?>
-                                </textarea>
+                                <textarea class="form-control" id="description" name="description" rows="3"><?php echo set_value('description',$description); ?></textarea>
                                 <span class="text-danger"></span>
                             </div>
                         </div>
@@ -111,9 +88,6 @@
         ?>
         <div class="col-xl-8">
             <div class="card mb-4">
-                <!-- <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Units list</h5>
-                </div> -->
                 <div class="card-body">
                     <div class="card">
                         <h5 class="card-header">Units list</h5>
@@ -131,9 +105,10 @@
                                 <thead>
                                     <tr>
                                         <th><?php echo $this->lang->line('name'); ?></th>
-                                        <th><?php echo $this->lang->line('base_unit'); ?></th>
-                                        <th><?php echo $this->lang->line('operator'); ?></th>
-                                        <th><?php echo $this->lang->line('operation_value'); ?></th>
+                                        <th><?php echo $this->lang->line('short_name'); ?>Short name</th>
+                                        <th><?php echo $this->lang->line('primary_unit'); ?>Primary unit</th>
+                                        <th><?php echo $this->lang->line('status'); ?></th>
+                                        <th><?php echo $this->lang->line('description'); ?></th>
                                         <th class="text-right"><?php echo $this->lang->line('action'); ?></th>
                                     </tr>
                                 </thead>
@@ -146,22 +121,10 @@
                                     ?>
                                     <tr>
                                         <td><?php echo $val['name']; ?></td>
+                                        <td><?php echo $val['short_name']; ?></td>
+                                        <td><?php echo $this->units_model->get_unit_name_by_code($val['primary_unit']);  ?></td>
+                                        <td><span class="badge bg-label-<?php echo ($val['is_active'] == 'yes') ? 'success' : 'danger';?> me-1"><?php echo ($val['is_active'] == 'yes') ? 'Active' : 'Deactive'; ?></span></td>
                                         <td><?php echo $val['description']; ?></td>
-                                        <td><?php echo $val['parent']; ?></td>
-                                        <td><?php echo $val['operator']; ?></td>
-                                        <!-- <td>
-                                            <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-                                                <li
-                                                data-bs-toggle="tooltip"
-                                                data-popup="tooltip-custom"
-                                                data-bs-placement="top"
-                                                class="avatar avatar-xs pull-up"
-                                                title="Lilian Fuller" >
-                                                <img src="../assets/img/avatars/5.png" alt="Avatar" class="rounded-circle" />
-                                                </li>
-                                                
-                                            </ul>
-                                        </td> -->
                                         
                                         <td>
                                             <div class="dropdown">
@@ -212,6 +175,7 @@
         </div>
     </div>
 </div>
+
 <!-- / Content -->
 
 <script type="text/javascript">

@@ -52,6 +52,7 @@
 
     <?php
       $side_list = side_menu_list(1);
+
       if (!empty($side_list))
       {
         foreach ($side_list as $side_list_key => $side_list_value)

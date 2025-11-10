@@ -1,8 +1,10 @@
 <?php
-class Units_model extends CI_model {
 
+class Units_model extends CI_model
+{
     public function getParentunits(){
-        $this->db->where('base_unit', null)->or_where('base_unit', 0);
+        $this->db->where('primary_unit', null)->or_where('primary_unit', 0);
+        $this->db->order_by('units.id', 'DESC');
         $q = $this->db->get('units');
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -17,14 +19,18 @@ class Units_model extends CI_model {
         if (!empty($id)) {
             $this->db->select('units.*,c.name as parent');
             $this->db->from('units');
-            $this->db->join('units c', 'c.id=units.base_unit', 'left');
+            $this->db->join('units c', 'c.id=units.primary_unit', 'left');
+
             $this->db->where('units.id',$id);
+            $this->db->order_by('units.id', 'DESC');
+
             $query = $this->db->get();
             return $query->row_array();
         } else {
-            $this->db->select('units.*,c.name as parent');
+            $this->db->select('units.*, c.name as parent');
             $this->db->from('units');
-            $this->db->join('units c', 'c.id=units.base_unit', 'left');
+            $this->db->join('units c', 'c.id=units.primary_unit', 'left');
+            $this->db->order_by('units.id', 'DESC');
             $query = $this->db->get();
             return $query->result_array();
         }
@@ -81,7 +87,7 @@ class Units_model extends CI_model {
     public function get_units($limit = 0, $offset = 0, $search = null) {
         $this->db->select('units.*, c.name as parent');
         $this->db->from('units');
-        $this->db->join('units c', 'c.id = units.base_unit', 'left');
+        $this->db->join('units c', 'c.id = units.primary_unit', 'left');
 
         if (!empty($search)) {
             // search in name, description, operator, maybe parent name
@@ -94,7 +100,8 @@ class Units_model extends CI_model {
         }
 
         // Order by (optional) — change as needed
-        $this->db->order_by('units.name', 'ASC');
+        //$this->db->order_by('units.name', 'ASC');
+        $this->db->order_by('units.id', 'DESC');
 
         if ($limit > 0) {
             $this->db->limit($limit, $offset);
@@ -114,7 +121,7 @@ class Units_model extends CI_model {
      */
     public function count_units($search = null) {
         $this->db->from('units');
-        $this->db->join('units c', 'c.id = units.base_unit', 'left');
+        $this->db->join('units c', 'c.id = units.primary_unit', 'left');
 
         if (!empty($search)) {
             $this->db->group_start();
@@ -128,6 +135,16 @@ class Units_model extends CI_model {
         return $this->db->count_all_results();
     }
 
+
+    public function get_unit_name_by_code($code)
+    {
+        return $this->db
+            ->select('name')
+            ->from('units')
+            ->where('code', $code)
+            ->get()
+            ->row('name');
+    }
     // ... keep the rest of your methods ...
 }
 

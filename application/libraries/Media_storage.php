@@ -24,13 +24,17 @@ class Media_storage
             $file_name   = time() . "-" . uniqid(rand()) . "!" . $name;
             //$destination = $this->_CI->customlib->getFolderPath() . $upload_path . $file_name;
 
+            $folder_name = FCPATH . $upload_path;
+            if (!is_dir($folder_name)) {
+                mkdir($folder_name, 0777, true);
+            }
+
             $destination = FCPATH . $upload_path . $file_name;
 
             if (move_uploaded_file($_FILES[$media_name]["tmp_name"], $destination)) {
 
                 return $file_name;
             }
-
         }
 
         return null;
