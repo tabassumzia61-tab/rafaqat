@@ -87,8 +87,6 @@ class Products extends Admin_Controller{
             access_denied();
         }
 
-        //$data['title']          = 'Add Product';
-
         if(($this->input->post('product_type')) == "product")
         {
             $this->form_validation->set_rules('item_name', 'item name', 'trim|required');
@@ -105,6 +103,8 @@ class Products extends Admin_Controller{
             $data['item_code']          = $this->products_model->generate_item_code();
             $data['service_code']       = $this->products_model->generate_service_code();
             $data['taxs_list']          = $this->products_model->taxs_list();
+            
+            $data['mnf_product_list']   = $this->products_model->get_product_list();
 
             $this->load->view('layout/header', $data);
             $this->load->view('admin/products/productsCreate', $data);
@@ -128,7 +128,7 @@ class Products extends Admin_Controller{
 
             $img_name   = $this->media_storage->fileupload("image", "./uploads/products/");
             $data['image']              = $img_name;
-            $data['description']        = $this->input->post('discription');
+            $data['description']        = $this->input->post('description');
 
             $data['mrp']                = $this->input->post('mrp');
             $data['disc_on_mrp_sale']   = $this->input->post('disc_on_mrp_sale');
@@ -156,6 +156,11 @@ class Products extends Admin_Controller{
             $data['as_of_date']         = $this->input->post('as_of_date');
             $data['minimun_stock_to_mantain']   = $this->input->post('minimun_stock_to_mantain');
             $data['location']           = $this->input->post('location');
+
+            $raw_materials = $this->input->post('raw_materials');
+            if (!empty($raw_materials)) {
+                $data['manufacturing_items'] = json_encode($raw_materials);
+            }
             
             //dd($data);
             //$data['categories_list']    = $this->products_model->get_categories();
@@ -169,7 +174,11 @@ class Products extends Admin_Controller{
             redirect('admin/products/create.html');
 
         }
+    }
 
+
+    public function create_old()
+    {
         
         // $data['unitlist']        = $this->units_model->get();
         // $data['categories']      = $this->categories_model->getAllCategories();
@@ -536,6 +545,66 @@ class Products extends Admin_Controller{
             $data = false;
         }
         echo $data;
+    }
+
+    public function ajax_add_unit()
+    {
+        $unit_name  = $this->input->post('unit_name');
+        $short_name = $this->input->post('short_name');
+
+        if (empty($unit_name)) {
+            echo json_encode(["status" => false, "message" => "Unit name required"]);
+            return;
+        }
+
+        // generate code
+        $last = $this->db->select('code')->order_by('id','DESC')->get('units')->row();
+
+        if ($last) {
+            $number = intval(substr($last->code, 4)) + 1; 
+        } else {
+            $number = 1;
+        }
+        $code = $this->generateNextCode("IU");
+
+        $data = [
+            "code"       => $code,
+            "name"       => $unit_name,
+            "short_name" => $short_name,
+            "is_active"  => "yes"
+        ];
+
+        $this->db->insert('units', $data);
+
+        $data["id"] = $this->db->insert_id();
+
+        echo json_encode([
+            "status" => true,
+            "message" => "Unit added",
+            "data" => $data
+        ]);
+    }
+
+    public function generateNextCode($prefix)
+    {
+        $this->db->select('code');
+        $this->db->from('units');
+        $this->db->order_by('id', 'DESC');
+        $this->db->limit(1);
+
+        $query  = $this->db->get();
+        $row    = $query->row();
+
+        if ($row && preg_match('/IU_(\d+)/', $row->code, $matches))
+        {
+            $num = (int)$matches[1] + 1;
+        }
+        else
+        {
+            $num = 1; // first time
+        }
+
+        return $prefix .'_'. str_pad($num, 4, '0', STR_PAD_LEFT);
     }
 
 }

@@ -293,8 +293,6 @@ class Products_model extends MY_Model
         return $prefix . str_pad($num, 8, '0', STR_PAD_LEFT);
     }
 
-
-
     public function add_item($data)
     {
         if (isset($data['id'])) {
@@ -305,6 +303,18 @@ class Products_model extends MY_Model
             
             return true;
         }
+    }
+
+
+    public function get_product_list()
+    {
+        $this->db->select('add_products.*, categories.name as category_name, units.name as unit_name');
+        $this->db->from('add_products');
+        $this->db->join('categories', 'categories.code = add_products.category_code', 'left');
+        $this->db->join('units', 'units.code = add_products.unit_code', 'left');
+
+        $this->db->order_by('add_products.id', 'DESC');
+        return $this->db->get()->result_array();
     }
 
 }

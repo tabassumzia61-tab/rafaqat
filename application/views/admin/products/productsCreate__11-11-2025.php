@@ -22,24 +22,22 @@
                 <div class="card-body">
                     <form action="<?php echo site_url('admin/products/create.html') ?>"  id="item_form" name="item_form" method="post" accept-charset="utf-8" enctype="multipart/form-data">
                         
-                        <?php if ($this->session->flashdata('msg')) {?>
-                            <?php echo $this->session->flashdata('msg');
-                            $this->session->unset_userdata('msg'); ?>
-                        <?php }?>
-                        <?php echo $this->customlib->getCSRF(); ?>
+                    <?php if ($this->session->flashdata('msg')) {?>
+                        <?php echo $this->session->flashdata('msg');
+                        $this->session->unset_userdata('msg'); ?>
+                    <?php }?>
+                    <?php echo $this->customlib->getCSRF(); ?>
 
                         <input type="hidden" name="product_type" id="productType" value="product">
                         <div class="row mb-3">
                             <div class="col-sm-3 item_name">
                                 <label class="form-label" for="item_name">Itam name</label>
                                 <input type="text" name="item_name" id="item_name" placeholder="Itam name" class="form-control" />
-                                <span class="text-danger"><?php echo form_error('item_name'); ?></span>
                             </div>
 
                             <div class="col-sm-3 service_name" style="display:none;">
                                 <label class="form-label" for="service_name">Service name</label>
                                 <input type="text" name="service_name" id="service_name" placeholder="Service name" class="form-control" />
-                                <span class="text-danger"><?php echo form_error('service_name'); ?></span>
                             </div>
 
                             <div class="col-sm-3">
@@ -54,8 +52,8 @@
                                 </select>
                             </div>
                             <div class="col-sm-3">
-                                <label for="item_unit_code" class="form-label">Units </label>
-                                <select name="item_unit_code" id="item_unit_code" class="form-select">
+                                <label for="item_unit" class="form-label">Units </label>
+                                <select name="item_unit" id="item_unit" class="form-select">
                                     <option>Select...</option>
                                     <?php if (!empty($units_list)) { ?>
                                         <?php foreach ($units_list as $unit) { ?>
@@ -319,61 +317,55 @@
                                             <div class="row">
                                                 <div id="raw_material_sectionvv" style="margin-top:20px;">
                                                     <h4>Manufacturing Materials</h4>
-                                                    
                                                     <table class="table table-bordered" id="raw_material_table">
                                                         <thead>
                                                             <tr>
                                                                 <th>Product</th>
                                                                 <th>Qty</th>
                                                                 <th>Unit</th>
-                                                                <th>Price / Unit</th>
+                                                                <th>Price per item</th>
                                                                 <th>Amount</th>
                                                                 <th>Action</th>
                                                             </tr>
                                                         </thead>
-
                                                         <tbody id="raw_material_body">
                                                             <tr>
                                                                 <td>
-                                                                    <select name="raw_materials[0][product_id]" class="form-control rm_product_select">
-                                                                        <option value="">Select…</option>
-
-                                                                        <?php if(!empty($mnf_product_list)) { 
-                                                                            foreach($mnf_product_list as $opt) { ?>
-                                                                            <option value="<?= $opt['id']; ?>"
-                                                                                data-unit_name="<?= $opt['unit_name']; ?>"
-                                                                                data-unit_code="<?= $opt['unit_code']; ?>"
-                                                                                data-product_price="<?= $opt['sale_price']; ?>">
-                                                                                <?= $opt['item_name']; ?>
-                                                                            </option>
+                                                                    <select name="raw_materials[0][product_id]" class="form-control rm_product_select" required>
+                                                                        <option value="">Select...</option>
+                                                                        <?php if (!empty($mnf_product_list)) { foreach ($mnf_product_list as $opt) { ?>
+                                                                            <option value="<?= (int)$opt['id']; ?>" data-unit_name="<?= $opt['unit_name'] ?>" data-unit_code="<?= $opt['unit_code'] ?>" data-product_price="<?= $opt['sale_price'] ?>"><?php echo htmlspecialchars($opt['item_name']); ?></option>
                                                                         <?php }} ?>
                                                                     </select>
                                                                 </td>
-
                                                                 <td>
-                                                                    <input type="number" step="0.0001" name="raw_materials[0][qty]" class="form-control qty">
+                                                                    <input type="number" step="1" name="raw_materials[0][qty]" class="form-control qty" >
                                                                 </td>
-
                                                                 <td>
-                                                                    <input type="text" class="form-control unit_name" readonly>
-                                                                    <input type="hidden" name="raw_materials[0][unit_code]" class="unit_code">
+                                                                    <input type="text" name="raw_materials_unit_name"  id="raw_materials_unit_name"class="form-control" value="" readonly> 
+                                                                    <input type="hidden" name="raw_materials[0][unit_id]" id="raw_materials_unit_id" value=""  readonly>  
+                                                                    <?php /*?>
+                                                                    <select name="raw_materials[0][unit_id]" class="form-control" required>
+                                                                        <option value="">Select</option>
+                                                                        <?php foreach ($unitlist as $key => $val) { ?>
+                                                                            <option value="<?php echo $val['id']; ?>"><?php echo $val['name']; ?></option>
+                                                                        <?php } ?>
+                                                                    </select>
+                                                                        <?php */?>
                                                                 </td>
-
                                                                 <td>
-                                                                    <input type="text" name="raw_materials[0][price_per_unit]" class="form-control price" readonly>
+                                                                    <input type="text" name="raw_materials[0][price_per_unit]" id="raw_materials_price_per_unit" class="form-control price" value="" readonly>
                                                                 </td>
-
                                                                 <td>
                                                                     <input type="text" name="raw_materials[0][amount]" class="form-control amount" readonly>
                                                                 </td>
-
                                                                 <td>
                                                                     <button type="button" class="btn btn-danger btn-sm remove_row">X</button>
                                                                 </td>
                                                             </tr>
                                                         </tbody>
 
-                                                        <tfoot>
+                                                        <tfoot style="display: table-footer-group !important;">
                                                             <tr>
                                                                 <td colspan="3">
                                                                     <button type="button" class="btn btn-primary btn-sm" id="add_raw_material">+ Add Row</button>
@@ -385,8 +377,62 @@
                                                             </tr>
                                                         </tfoot>
                                                     </table>
+                                                    <div style="margin-top:10px;">
+                                                        <button type="button" class="btn btn-info" id="toggle_additional_cost" style="border-radius:20px; padding:6px 14px;">
+                                                            <i class="fa fa-plus-circle"></i> Additional Cost
+                                                        </button>
+                                                    </div>
 
-                                                
+                                                    <div id="additional_cost_section" style="margin-top:10px;">
+                                                        <datalist id="additional_cost_types">
+                                                            <option value="Labour"></option>
+                                                            <option value="Electricity"></option>
+                                                            <option value="Packaging"></option>
+                                                            <option value="Logistics"></option>
+                                                            <option value="Other Charges"></option>
+                                                        </datalist>
+                                                        <table class="table table-bordered" id="additional_cost_table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width:60%;">Additional Cost Type</th>
+                                                                    <th style="width:25%;">Amount</th>
+                                                                    <th>Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="additional_cost_body">
+                                                                <tr>
+                                                                    <td>
+                                                                        <select name="additional_costs[0][name]" class="form-control ac_type_select" required>
+                                                                            <option value="">Select</option>
+                                                                            <option value="Labour">Labour</option>
+                                                                            <option value="Electricity">Electricity</option>
+                                                                            <option value="Packaging">Packaging</option>
+                                                                            <option value="Logistics">Logistics</option>
+                                                                            <option value="Other Charges">Other Charges</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" inputmode="decimal" name="additional_costs[0][amount]" class="form-control ac_amount" required>
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button" class="btn btn-danger btn-sm remove_ac_row">X</button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                            <tfoot style="display: table-footer-group !important;">
+                                                                <tr>
+                                                                    <td>
+                                                                        <button type="button" class="btn btn-primary btn-sm" id="add_additional_cost">+ Add Row</button>
+                                                                    </td>
+                                                                    <td class="text-right" colspan="2">
+                                                                        <strong>Total Additional Cost: </strong>
+                                                                        <span id="additional_total_cost">0.00</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+
                                                     <div id="grand_total_container" class="text-right" style="margin-top:10px;">
                                                         <strong>Total Estimated Cost (Raw Material + Additional Cost): </strong>
                                                         <span id="grand_total_estimated_cost">0.00</span>
@@ -424,6 +470,7 @@
                                             <input type="text" class="form-control" id="short_name" name="short_name" placeholder="Short name" />
                                         </div>
                                     </div>
+                                
                                     <!-- <div class="row">
                                         <div class="col-sm-6">
                                             <label class="form-label" for="name">Primary unit</label>
@@ -505,7 +552,7 @@
                     if (res.status == true) {
 
                         // append new unit in select
-                        $("#item_unit_code").append(
+                        $("#item_unit").append(
                             `<option value="${res.data.code}" selected>${res.data.name}</option>`
                         );
 
@@ -526,100 +573,60 @@
     });
 </script>
 
+
 <script>
-let rowIndex = 1;
 
-/* PRODUCT SELECT → AUTO FILL UNIT + PRICE */
-$(document).on("change", ".rm_product_select", function () {
+    // Add row
+var rowIndex = 1;
 
-    let row = $(this).closest("tr");
+$(".rm_product_select").on("change", function () {
 
-    let unitName     = $(this).find(":selected").data("unit_name");
-    let unitCode       = $(this).find(":selected").data("unit_code");
-    let productPrice = $(this).find(":selected").data("product_price");
+    let unitName        = $(this).find(":selected").data("unit_name");
+    let unitCode        = $(this).find(":selected").data("unit_code");
+    let productPrice    = $(this).find(":selected").data("product_price");
 
-    row.find(".unit_name").val(unitName);
-    row.find(".unit_code").val(unitCode);
-    row.find(".price").val(productPrice);
-
-    calcRowAmount(row);
-    recalcTotal();
+    $("#raw_materials_unit_name").val(unitName);
+    $("#raw_materials_unit_id").val(unitCode);
+    $("#raw_materials_price_per_unit").val(productPrice);
+    //$("#mnf_product_price").val(productPrice);
 });
 
-
-/* QTY → CALCULATE AMOUNT */
 $(document).on("keyup change", ".qty", function () {
-    let row = $(this).closest("tr");
-    calcRowAmount(row);
-    recalcTotal();
+    let row     = $(this).closest('tr, .row');
+    let qty     = parseFloat(row.find(".qty").val()) || 0;
+    let price   = parseFloat(row.find(".price").val()) || 0;
+    let amount  = (qty * price).toFixed(4);
+
+    row.find(".amount").val(amount);
 });
-
-
-/* FUNCTION — CALCULATE ROW AMOUNT */
-function calcRowAmount(row) {
-    let qty   = parseFloat(row.find(".qty").val())   || 0;
-    let price = parseFloat(row.find(".price").val()) || 0;
-    let amt   = qty * price;
-
-    row.find(".amount").val(amt.toFixed(4));
-}
-
-
-/* FUNCTION — TOTAL RAW MATERIAL COST */
-function recalcTotal() {
-    let total = 0;
-
-    $(".amount").each(function () {
-        total += parseFloat($(this).val()) || 0;
+    $(document).on('click', '#add_raw_material', function() {
+        
+        var firstSelectHtml = $('#raw_material_table tbody select:first').html() || '<option value="">Select</option>';
+        var newRow = `
+        <tr>
+            <td>
+                <select name="raw_materials[${rowIndex}][product_id]" class="form-control rm_product_select" required>
+                    ${($('#raw_material_table tbody select.rm_product_select:first').html() || '<option value="">Select</option>')}
+                </select>
+            </td>
+            <td><input type="number" step="0.0001" name="raw_materials[${rowIndex}][qty]" class="form-control qty" required></td>
+            <td>
+                <select name="raw_materials[${rowIndex}][unit_id]" class="form-control" required>
+                    ${firstSelectHtml}
+                </select>
+            </td>
+            <td><input type="number" step="0.0001" name="raw_materials[${rowIndex}][price_per_unit]" class="form-control price" required></td>
+            <td><input type="text" name="raw_materials[${rowIndex}][estimated_cost]" class="form-control estimated_cost" readonly></td>
+            <td><button type="button" class="btn btn-danger btn-sm remove_row">X</button></td>
+        </tr>
+    `;
+        $('#raw_material_body').append(newRow);
+        rowIndex++;
     });
 
-    $("#total_cost").text(total.toFixed(4));
-}
-
-
-/* ADD ROW */
-$("#add_raw_material").on("click", function () {
-
-    let options = $("select.rm_product_select:first").html();
-
-    let newRow = `
-    <tr>
-        <td>
-            <select name="raw_materials[${rowIndex}][product_id]" class="form-control rm_product_select">
-                ${options}
-            </select>
-        </td>
-
-        <td>
-            <input type="number" step="0.0001" name="raw_materials[${rowIndex}][qty]" class="form-control qty">
-        </td>
-
-        <td>
-            <input type="text" class="form-control unit_name" readonly>
-            <input type="hidden" name="raw_materials[${rowIndex}][unit_code]" class="unit_code">
-        </td>
-
-        <td>
-            <input type="text" name="raw_materials[${rowIndex}][price_per_unit]" class="form-control price" readonly>
-        </td>
-
-        <td>
-            <input type="text" name="raw_materials[${rowIndex}][amount]" class="form-control amount" readonly>
-        </td>
-
-        <td>
-            <button type="button" class="btn btn-danger btn-sm remove_row">X</button>
-        </td>
-    </tr>`;
-
-    $("#raw_material_body").append(newRow);
-    rowIndex++;
-});
-
-
-/* REMOVE ROW */
-$(document).on("click", ".remove_row", function () {
-    $(this).closest("tr").remove();
-    recalcTotal();
-});
+    // Remove row
+    $(document).on('click', '.remove_row', function() {
+        $(this).closest('tr').remove();
+        recalcTotal();
+    });
 </script>
